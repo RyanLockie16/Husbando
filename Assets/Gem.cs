@@ -25,6 +25,10 @@ public class Gem : MonoBehaviour
         FindNeighbors();
     }
 
+    private void Update() {
+        FindNeighbors();           //Added this in so that the neighbor list stays consistent as items move
+    }
+
     private void OnMouseEnter()
     {
         outline.SetActive(true);
