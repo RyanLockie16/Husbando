@@ -17,15 +17,15 @@ public class CreateBoard : MonoBehaviour
     [SerializeField]
     private Transform cam;
 
-    private GameObject[,] board;
+    private static GameObject[,] board;
 
     private Vector2Int[] swap;
 
     void Start()
     {
-        board = new GameObject[xDimention,yDimention];
+        board = new GameObject[xDimention, yDimention];
         generateGrid();
-        swap = new Vector2Int[2] {new Vector2Int(-1,-1), new Vector2Int(-1, -1)};
+        swap = new Vector2Int[2] { new Vector2Int(-1, -1), new Vector2Int(-1, -1) };
     }
 
     private void generateGrid()
@@ -42,12 +42,12 @@ public class CreateBoard : MonoBehaviour
             }
         }
         Vector2 tileDimentions = board[0, 0].GetComponent<Gem>().GetTileSize();
-        cam.transform.position = new Vector3((float) xDimention/2 - tileDimentions.x/2f, (float) yDimention/2 - tileDimentions.y/2f, -10f);
-        var bg = Instantiate(backGround, new Vector3((float)xDimention / 2 - tileDimentions.x/2f, (float)yDimention / 2 - tileDimentions.y / 2f), Quaternion.identity);
+        cam.transform.position = new Vector3((float)xDimention / 2 - tileDimentions.x / 2f, (float)yDimention / 2 - tileDimentions.y / 2f, -10f);
+        var bg = Instantiate(backGround, new Vector3((float)xDimention / 2 - tileDimentions.x / 2f, (float)yDimention / 2 - tileDimentions.y / 2f), Quaternion.identity);
         bg.transform.localScale = new Vector3(xDimention + 2f, yDimention + 2f);
     }
 
-    public Gem GetTile (Vector2Int pos)
+    public static Gem GetTile(Vector2Int pos)
     {
         return board[pos.x, pos.y].GetComponent<Gem>();
     }
@@ -69,12 +69,13 @@ public class CreateBoard : MonoBehaviour
                 board[swap[0].x, swap[0].y].GetComponent<Gem>().setSelected(false);
                 gem.setSelected(false);
             }
-            else {
+            else
+            {
                 swap[1] = gem.pos;
 
                 Swap();
 
-                
+
             }
             swap = new Vector2Int[2] { new Vector2Int(-1, -1), new Vector2Int(-1, -1) };
         }
@@ -98,13 +99,20 @@ public class CreateBoard : MonoBehaviour
         temp1.GetComponent<Gem>().setSelected(false);
         temp2.GetComponent<Gem>().setSelected(false);
 
+        Debug.Log("Finding Neighbors");
         temp1.GetComponent<Gem>().FindNeighbors();
         temp2.GetComponent<Gem>().FindNeighbors();
+        temp1.GetComponent<Gem>().RemakeNeighbors();
+        temp2.GetComponent<Gem>().RemakeNeighbors();
+
+        temp1.GetComponent<Gem>().hasMatches();
+        temp2.GetComponent<Gem>().hasMatches();
     }
-    
+
+
     // Update is called once per frame
     void Update()
     {
-        
+
     }
 }
