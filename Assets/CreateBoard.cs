@@ -47,6 +47,7 @@ public class CreateBoard : MonoBehaviour
         bg.transform.localScale = new Vector3(xDimention + 2f, yDimention + 2f);
     }
 
+
     public static Gem GetTile(Vector2Int pos)
     {
         return board[pos.x, pos.y].GetComponent<Gem>();
@@ -107,12 +108,31 @@ public class CreateBoard : MonoBehaviour
 
         temp1.GetComponent<Gem>().hasMatches();
         temp2.GetComponent<Gem>().hasMatches();
+
+    }
+
+    private void FillGaps() //Method to fill in empty spaces
+    {
+        for (int row = 0; row < xDimention; row++)
+        {
+            for (int col = 0; col < yDimention; col++)
+            {
+                if (board[row, col] == null)
+                {
+                    int gem = Random.Range(0, gems.Count);
+                    board[row, col] = Instantiate(gems[gem], new Vector3(row, col), Quaternion.identity);
+                    board[row, col].transform.SetParent(transform);
+                    board[row, col].name = $"{board[row, col].GetComponent<Gem>().GetGemType()} {row} {col}";
+                    board[row, col].GetComponent<Gem>().pos = new Vector2Int(row, col);
+                }
+            }
+        }
     }
 
 
     // Update is called once per frame
     void Update()
     {
-
+        FillGaps();
     }
 }

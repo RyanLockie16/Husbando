@@ -133,6 +133,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   type: 5
   dimentions: {x: 1, y: 1}
+  pos: {x: 0, y: 0}
 --- !u!212 &3327929355653470828
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -173,7 +174,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 1
   m_Sprite: {fileID: -2413806693520163455, guid: a86470a33a6bf42c4b3595704624658b, type: 3}
   m_Color: {r: 0.2830189, g: 0.27367392, b: 0.27367392, a: 1}
   m_FlipX: 0
