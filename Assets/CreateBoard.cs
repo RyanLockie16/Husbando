@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class CreateBoard : MonoBehaviour
@@ -28,8 +29,9 @@ public class CreateBoard : MonoBehaviour
         swap = new Vector2Int[2] { new Vector2Int(-1, -1), new Vector2Int(-1, -1) };
     }
 
-    private void generateGrid()
+    private void generateGrid() //Creates the initial grid and sets the background size and positions the camera
     {
+        //This double for loop creates the grid
         for (int row = 0; row < xDimention; row++)
         {
             for (int col = 0; col < yDimention; col++)
@@ -41,30 +43,28 @@ public class CreateBoard : MonoBehaviour
                 board[row, col].GetComponent<Gem>().pos = new Vector2Int(row, col);
             }
         }
-        Vector2 tileDimentions = board[0, 0].GetComponent<Gem>().GetTileSize();
-        cam.transform.position = new Vector3((float)xDimention / 2 - tileDimentions.x / 2f, (float)yDimention / 2 - tileDimentions.y / 2f, -10f);
-        var bg = Instantiate(backGround, new Vector3((float)xDimention / 2 - tileDimentions.x / 2f, (float)yDimention / 2 - tileDimentions.y / 2f), Quaternion.identity);
-        bg.transform.localScale = new Vector3(xDimention + 2f, yDimention + 2f);
+        Vector2 tileDimentions = board[0, 0].GetComponent<Gem>().GetTileSize(); //Gets Tile size for calculations later
+        cam.transform.position = new Vector3((float)xDimention / 2 - tileDimentions.x / 2f, (float)yDimention / 2 - tileDimentions.y / 2f, -10f); //Set cam position to center of the board
+        var bg = Instantiate(backGround, new Vector3((float)xDimention / 2 - tileDimentions.x / 2f, (float)yDimention / 2 - tileDimentions.y / 2f), Quaternion.identity); //Creates background and sets it to the size of the grid
+        bg.transform.localScale = new Vector3(xDimention + 2f, yDimention + 2f); //Sets the boarder of the grid so there is some white space
     }
 
 
-    public static Gem GetTile(Vector2Int pos)
+    public static Gem GetTile(Vector2Int pos) //A function that returns the gem at a given position
     {
         return board[pos.x, pos.y].GetComponent<Gem>();
     }
 
-    public void TilesToSwap(Gem gem)
+    public void TilesToSwap(Gem gem) //A function that declares what tiles should be swapped
     {
 
-        if (swap[0] == new Vector2(-1f, -1f))
+        if (swap[0] == new Vector2(-1f, -1f)) //Sets the first tile reference 
         {
-            //Debug.Log("Player Selected "+gameObject.name);
             swap[0] = gem.pos;
         }
-        else
+        else //Sets the second tile reference
         {
-            //Debug.Log("Player Selected " + gameObject.name);
-            if (!gem.isNeighbor(swap[0]))
+            if (!gem.isNeighbor(swap[0])) //Checks if tiles are neighbors
             {
                 Debug.Log("Tiles not next to eachother");
                 board[swap[0].x, swap[0].y].GetComponent<Gem>().setSelected(false);
@@ -82,7 +82,7 @@ public class CreateBoard : MonoBehaviour
         }
     }
 
-    private void Swap()
+    private void Swap() //Swap the position of two tiles and removes tile matches
     {
         GameObject temp1 = board[swap[0].x, swap[0].y];
         GameObject temp2 = board[swap[1].x, swap[1].y];
@@ -101,10 +101,11 @@ public class CreateBoard : MonoBehaviour
         temp2.GetComponent<Gem>().setSelected(false);
 
         Debug.Log("Finding Neighbors");
-        temp1.GetComponent<Gem>().FindNeighbors();
-        temp2.GetComponent<Gem>().FindNeighbors();
-        temp1.GetComponent<Gem>().RemakeNeighbors();
-        temp2.GetComponent<Gem>().RemakeNeighbors();
+        //temp1.GetComponent<Gem>().FindNeighbors();
+        //temp2.GetComponent<Gem>().FindNeighbors();
+        //temp1.GetComponent<Gem>().RemakeNeighbors();
+        //temp2.GetComponent<Gem>().RemakeNeighbors();
+        UpdateAllNeighbors();
 
         temp1.GetComponent<Gem>().hasMatches();
         temp2.GetComponent<Gem>().hasMatches();
@@ -127,8 +128,19 @@ public class CreateBoard : MonoBehaviour
                 }
             }
         }
+        UpdateAllNeighbors();
     }
 
+    private void UpdateAllNeighbors() //Updates all the neighbors of every tile
+    {
+        for (int row = 0; row < xDimention; row++)
+        {
+            for (int col = 0; col < yDimention; col++)
+            {
+                board[row, col].GetComponent<Gem>().FindNeighbors();
+            }
+        }
+    }
 
     // Update is called once per frame
     void Update()

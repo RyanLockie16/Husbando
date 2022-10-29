@@ -30,11 +30,11 @@ public class Gem : MonoBehaviour
         //FindNeighbors();           //Added this in so that the neighbor list stays consistent as items move
     }
 
-    private void OnMouseEnter()
+    private void OnMouseEnter() //Checks if the mouse is over a tile to see if the outline should be turned on
     {
         outline.SetActive(true);
     }
-    private void OnMouseExit()
+    private void OnMouseExit() //Removes the outline if the tile was not clicked
     {
         if (!selected)
         {
@@ -42,7 +42,7 @@ public class Gem : MonoBehaviour
         }
     }
 
-    private void OnMouseDown()
+    private void OnMouseDown() //Sets the tile to selected if the player clicks it
     {
         if (!selected)
         {
@@ -52,41 +52,38 @@ public class Gem : MonoBehaviour
         }
     }
 
-    public void setSelected(bool isSelected)
+    public void setSelected(bool isSelected) //Handles selecting and deslecting tiles.
     {
         selected = isSelected;
         outline.SetActive(isSelected);
     }
-    public GemType GetGemType()
+    public GemType GetGemType() //Returns the enum type for the gem
     {
         return type;
     }
 
-    public Vector2 GetTileSize()
+    public Vector2 GetTileSize() //Returns the tile size of the gem
     {
         return dimentions;
     }
 
-    public void Reset()
+    public void Reset() //Resets the tile
     {
         adjacnceyList.Clear();
         selected = false;
     }
 
-    public void FindNeighbors()
+    public void FindNeighbors() //Finds the neighboring tiles
     {
         Reset();
         CheckTile(Vector2.up);
         CheckTile(Vector2.down);
         CheckTile(Vector2.left);
         CheckTile(Vector2.right);
-        CheckTile(Vector2.right + Vector2.up);
-        CheckTile(Vector2.left + Vector2.up);
-        CheckTile(Vector2.right + Vector2.down);
-        CheckTile(Vector2.left + Vector2.down);
+
     }
 
-    private void CheckTile(Vector2 direction)
+    private void CheckTile(Vector2 direction) //The fuctions actually sets the references for the neighbors list
     {
         Vector2 halfExt = new Vector2(0.25f, 0.25f);
         Collider2D[] collider2Ds = Physics2D.OverlapBoxAll(transform.position + (Vector3)direction, halfExt, 0f);
@@ -101,7 +98,7 @@ public class Gem : MonoBehaviour
         }
     }
 
-    public bool isNeighbor(Vector2Int pos)
+    public bool isNeighbor(Vector2Int pos) //Checks if a givin tile is a neighbor to this tile.
     {
         foreach (Gem gem in adjacnceyList)
         {
@@ -113,17 +110,8 @@ public class Gem : MonoBehaviour
         return false;
     }
 
-    public void RemakeNeighbors()
-    {
-        setSelected(false);
-        for (int i = 0; i < adjacnceyList.Count; i++)
-        {
-            adjacnceyList[i].FindNeighbors();
-        }
 
-    }
-
-    public void hasMatches()
+    public void hasMatches() //A public function that calls the other matching logic
     {
         List<Vector2Int> matches = findMatches(null);
 
@@ -139,7 +127,44 @@ public class Gem : MonoBehaviour
 
     }
 
-    private void checkInLine(checkType cType, List<Vector2Int> m)
+    private List<Vector2Int> findMatches(List<Vector2Int> m) //Returns a list of of the position of tiles that match the current tiles type
+    {
+        List<Vector2Int> Matches;
+        if (m == null)
+        {
+            Matches = new List<Vector2Int>();
+            Matches.Add(pos);
+        }
+        else
+            Matches = m;
+
+
+
+        foreach (Gem gem in adjacnceyList)
+        {
+            if (gem.GetGemType() == type && canPlace(Matches, gem.pos))
+            {
+                if (canPlace(Matches, pos))
+                    Matches.Add(pos);
+
+                Debug.Log("Found match at " + gem.pos);
+                List<Vector2Int> temp = gem.findMatches(Matches);
+
+                if (temp.Count > Matches.Count)
+                    Matches.AddRange(temp);
+                else if (canPlace(Matches, gem.pos))
+                    Matches.Add(gem.pos);
+
+                Debug.Log(Matches.Count);
+                //return Matches;
+            }
+        }
+
+
+        return Matches;
+    }
+
+    private void checkInLine(checkType cType, List<Vector2Int> m) //Checks and removes tiles that are in a row or col
     {
         List<Gem> toBeRemoved = new List<Gem>();
         switch (cType)
@@ -163,7 +188,7 @@ public class Gem : MonoBehaviour
                 }
                 break;
         }
-        if (toBeRemoved.Count >= 3)
+        if (toBeRemoved.Count >= 2)
         {
             for (int i = 0; i < toBeRemoved.Count; i++)
             {
@@ -173,45 +198,13 @@ public class Gem : MonoBehaviour
         }
     }
 
-    private enum checkType
+    private enum checkType //An enum that is used for the checkInLine() function that says what way we are checking
     {
         row, col
     }
-    private List<Vector2Int> findMatches(List<Vector2Int> m)
-    {
-        List<Vector2Int> Matches;
-        if (m == null)
-        {
-            Matches = new List<Vector2Int>();
-            Matches.Add(pos);
-        }
-        else
-            Matches = m;
+    
 
-
-
-        foreach (Gem gem in adjacnceyList)
-        {
-            if (gem.GetGemType() == type && canPlace(Matches, gem.pos))
-            {
-                if (canPlace(Matches, pos))
-                    Matches.Add(pos);
-                Debug.Log("Found match at " + gem.pos);
-                List<Vector2Int> temp = gem.findMatches(Matches);
-                if (temp != null)
-                    Matches.AddRange(temp);
-                else if (canPlace(Matches, gem.pos))
-                    Matches.Add(gem.pos);
-                Debug.Log(Matches.Count);
-                return Matches;
-            }
-        }
-
-
-        return null;
-    }
-
-    private bool canPlace(List<Vector2Int> m, Vector2Int pos)
+    private bool canPlace(List<Vector2Int> m, Vector2Int pos) //Checks if a tile can be place (I made it cause List<>.contains was being weird)
     {
         for (int i = 0; i < m.Count; i++)
         {
@@ -224,7 +217,7 @@ public class Gem : MonoBehaviour
     }
 }
 
-public enum GemType
+public enum GemType //An Enum that corrisponds to the what type the gem is
 {
     ICS, Math, Humanities, BioSci, Stats, Engineering
 }
