@@ -10,13 +10,15 @@ public class Gem : MonoBehaviour
     private GameObject outline;
 
     [SerializeField]
-    private Vector2 dimentions = new Vector2(1f, 1f);
+    private Vector2Int dimentions = new Vector2Int(1, 1);
 
     public Vector2Int pos;
 
     private bool selected = false;
 
     private List<Gem> adjacnceyList = new List<Gem>();
+
+    public bool toBeDeleted = false;
 
     void Start()
     {
@@ -28,6 +30,13 @@ public class Gem : MonoBehaviour
     private void Update()
     {
         //FindNeighbors();           //Added this in so that the neighbor list stays consistent as items move
+    }
+
+    public void changePosition (Vector2Int pos) //Method to swap pos var and objects location
+    {
+        this.pos = pos;
+        transform.position = new Vector3(this.pos.x * dimentions.x, this.pos.y * dimentions.y);
+        
     }
 
     private void OnMouseEnter() //Checks if the mouse is over a tile to see if the outline should be turned on
@@ -76,6 +85,8 @@ public class Gem : MonoBehaviour
     public void FindNeighbors() //Finds the neighboring tiles
     {
         Reset();
+
+
         CheckTile(Vector2.up);
         CheckTile(Vector2.down);
         CheckTile(Vector2.left);
@@ -114,12 +125,6 @@ public class Gem : MonoBehaviour
     public void hasMatches() //A public function that calls the other matching logic
     {
         List<Vector2Int> matches = findMatches(null);
-
-        Debug.Log(matches.Count);
-        foreach (Vector2Int p in matches)
-        {
-            Debug.Log(CreateBoard.GetTile(p).name);
-        }
 
         checkInLine(checkType.row, matches);
 
@@ -192,9 +197,11 @@ public class Gem : MonoBehaviour
         {
             for (int i = 0; i < toBeRemoved.Count; i++)
             {
-                Destroy(toBeRemoved[i].gameObject);
+                //Destroy(toBeRemoved[i].gameObject);
+                toBeRemoved[i].toBeDeleted = true;
             }
-            Destroy(this.gameObject);
+            toBeDeleted = true;
+            //Destroy(this.gameObject);
         }
     }
 

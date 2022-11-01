@@ -86,30 +86,26 @@ public class CreateBoard : MonoBehaviour
     {
         GameObject temp1 = board[swap[0].x, swap[0].y];
         GameObject temp2 = board[swap[1].x, swap[1].y];
-        Vector3 pos1 = temp1.transform.position;
-        Vector3 pos2 = temp2.transform.position;
+        Vector2Int pos1 = temp1.GetComponent<Gem>().pos;
+        Vector2Int pos2 = temp2.GetComponent<Gem>().pos;
 
-        board[swap[0].x, swap[0].y].transform.position = pos2;
-        board[swap[1].x, swap[1].y].transform.position = pos1;
+        board[pos1.x, pos1.y] = temp2;
+        board[pos2.x, pos2.y] = temp1;
 
-        board[swap[0].x, swap[0].y] = temp2;
-        board[swap[1].x, swap[1].y] = temp1;
-        temp1.GetComponent<Gem>().pos = swap[1];
-        temp2.GetComponent<Gem>().pos = swap[0];
+        temp1.GetComponent<Gem>().changePosition(pos2);
+        temp2.GetComponent<Gem>().changePosition(pos1);
 
         temp1.GetComponent<Gem>().setSelected(false);
         temp2.GetComponent<Gem>().setSelected(false);
 
-        Debug.Log("Finding Neighbors");
-        //temp1.GetComponent<Gem>().FindNeighbors();
-        //temp2.GetComponent<Gem>().FindNeighbors();
-        //temp1.GetComponent<Gem>().RemakeNeighbors();
-        //temp2.GetComponent<Gem>().RemakeNeighbors();
         UpdateAllNeighbors();
 
         temp1.GetComponent<Gem>().hasMatches();
         temp2.GetComponent<Gem>().hasMatches();
 
+        findDeletedTiles();
+        
+        
     }
 
     private void FillGaps() //Method to fill in empty spaces
@@ -119,12 +115,13 @@ public class CreateBoard : MonoBehaviour
             for (int col = 0; col < yDimention; col++)
             {
                 if (board[row, col] == null)
-                {
+                {   
                     int gem = Random.Range(0, gems.Count);
                     board[row, col] = Instantiate(gems[gem], new Vector3(row, col), Quaternion.identity);
                     board[row, col].transform.SetParent(transform);
                     board[row, col].name = $"{board[row, col].GetComponent<Gem>().GetGemType()} {row} {col}";
                     board[row, col].GetComponent<Gem>().pos = new Vector2Int(row, col);
+                    
                 }
             }
         }
@@ -143,8 +140,27 @@ public class CreateBoard : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update()
+    void LateUpdate()
     {
         FillGaps();
     }
+
+    private void findDeletedTiles () //Finds tiles that have toBeDeleted = true and destroys them
+    {
+
+        for (int row = 0; row < xDimention; row++)
+        {
+            for (int col = 0; col < yDimention; col++)
+            {
+                if (board[row, col].GetComponent<Gem>().toBeDeleted == true)
+                {
+                    Destroy(board[row, col].gameObject);
+                }
+                
+            }
+        }
+        
+
+    }
+
 }
