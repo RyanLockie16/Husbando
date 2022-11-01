@@ -27,29 +27,33 @@ public class Gem : MonoBehaviour
         FindNeighbors();
     }
 
-    private void Update()
+    private void FixedUpdate()
     {
-        //FindNeighbors();           //Added this in so that the neighbor list stays consistent as items move
+        FindNeighbors();           //Added this in so that the neighbor list stays consistent as items move
+        CheckBelow();
     }
 
     public void changePosition (Vector2Int pos) //Method to swap pos var and objects location
     {
         this.pos = pos;
         transform.position = new Vector3(this.pos.x * dimentions.x, this.pos.y * dimentions.y);
-        
+        gameObject.GetComponentInParent<CreateBoard>().ChangeTileSpace(pos, gameObject);
+        setSelected(false);
+
+
     }
 
-    private void OnMouseEnter() //Checks if the mouse is over a tile to see if the outline should be turned on
+    /*private void OnMouseEnter() //Checks if the mouse is over a tile to see if the outline should be turned on
     {
         outline.SetActive(true);
     }
-    private void OnMouseExit() //Removes the outline if the tile was not clicked
+    /*private void OnMouseExit() //Removes the outline if the tile was not clicked
     {
         if (!selected)
         {
             outline.SetActive(false);
         }
-    }
+    }*/
 
     private void OnMouseDown() //Sets the tile to selected if the player clicks it
     {
@@ -79,7 +83,8 @@ public class Gem : MonoBehaviour
     public void Reset() //Resets the tile
     {
         adjacnceyList.Clear();
-        selected = false;
+        //selected = false;
+        //toBeDeleted = false;
     }
 
     public void FindNeighbors() //Finds the neighboring tiles
@@ -152,7 +157,7 @@ public class Gem : MonoBehaviour
                 if (canPlace(Matches, pos))
                     Matches.Add(pos);
 
-                Debug.Log("Found match at " + gem.pos);
+                //Debug.Log("Found match at " + gem.pos);
                 List<Vector2Int> temp = gem.findMatches(Matches);
 
                 if (temp.Count > Matches.Count)
@@ -160,7 +165,7 @@ public class Gem : MonoBehaviour
                 else if (canPlace(Matches, gem.pos))
                     Matches.Add(gem.pos);
 
-                Debug.Log(Matches.Count);
+                //Debug.Log(Matches.Count);
                 //return Matches;
             }
         }
@@ -175,7 +180,7 @@ public class Gem : MonoBehaviour
         switch (cType)
         {
             case checkType.col:
-                for (int i = 1; i < m.Count; i++)
+                for (int i = 0; i < m.Count; i++)
                 {
                     if (m[i].x == pos.x && !toBeRemoved.Contains(CreateBoard.GetTile(m[i])))
                     {
@@ -184,7 +189,7 @@ public class Gem : MonoBehaviour
                 }
                 break;
             case checkType.row:
-                for (int i = 1; i < m.Count; i++)
+                for (int i = 0; i < m.Count; i++)
                 {
                     if (m[i].y == pos.y && !toBeRemoved.Contains(CreateBoard.GetTile(m[i])))
                     {
@@ -193,14 +198,13 @@ public class Gem : MonoBehaviour
                 }
                 break;
         }
-        if (toBeRemoved.Count >= 2)
+        if (toBeRemoved.Count >= 3 && !toBeDeleted)
         {
             for (int i = 0; i < toBeRemoved.Count; i++)
             {
                 //Destroy(toBeRemoved[i].gameObject);
                 toBeRemoved[i].toBeDeleted = true;
             }
-            toBeDeleted = true;
             //Destroy(this.gameObject);
         }
     }
@@ -222,9 +226,27 @@ public class Gem : MonoBehaviour
         }
         return true;
     }
+
+    public void CheckBelow ()
+    {
+        if(pos.y != 0)
+        {
+            Vector2 halfExt = new Vector2(0.25f, 0.25f);
+            Collider2D collider2D = Physics2D.OverlapBox(transform.position + (Vector3)Vector2.down, halfExt, 0f);
+
+            if(collider2D == null)
+            {
+                //Debug.Log($"Tile {gameObject.name} found a missing spot at {new Vector2Int(pos.x, pos.y - 1)}");
+                changePosition(new Vector2Int(pos.x, pos.y - 1));
+
+                CheckBelow();
+            }
+        }
+        //gameObject.GetComponentInParent<CreateBoard>().UpdateBoard();
+    }
 }
 
 public enum GemType //An Enum that corrisponds to the what type the gem is
 {
-    ICS, Math, Humanities, BioSci, Stats, Engineering
+    ICS, Math, Humanities, BioSci, Stats, Engineering, TestTile
 }

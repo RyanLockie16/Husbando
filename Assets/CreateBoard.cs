@@ -18,6 +18,9 @@ public class CreateBoard : MonoBehaviour
     [SerializeField]
     private Transform cam;
 
+    [SerializeField]
+    private GameObject testSpawnTile;
+
     private static GameObject[,] board;
 
     private Vector2Int[] swap;
@@ -52,7 +55,15 @@ public class CreateBoard : MonoBehaviour
 
     public static Gem GetTile(Vector2Int pos) //A function that returns the gem at a given position
     {
-        return board[pos.x, pos.y].GetComponent<Gem>();
+        try
+        {
+            //Debug.Log(board[pos.x, pos.y].GetComponent<Gem>());
+            return board[pos.x, pos.y].GetComponent<Gem>();
+        } catch
+        {
+            Debug.Log("Hit Null Tile");
+            return null;
+        }
     }
 
     public void TilesToSwap(Gem gem) //A function that declares what tiles should be swapped
@@ -89,23 +100,27 @@ public class CreateBoard : MonoBehaviour
         Vector2Int pos1 = temp1.GetComponent<Gem>().pos;
         Vector2Int pos2 = temp2.GetComponent<Gem>().pos;
 
-        board[pos1.x, pos1.y] = temp2;
-        board[pos2.x, pos2.y] = temp1;
+        //board[pos1.x, pos1.y] = temp2;
+        //board[pos2.x, pos2.y] = temp1;
 
         temp1.GetComponent<Gem>().changePosition(pos2);
         temp2.GetComponent<Gem>().changePosition(pos1);
+        //UpdateBoard();
 
-        temp1.GetComponent<Gem>().setSelected(false);
-        temp2.GetComponent<Gem>().setSelected(false);
+        //temp1.GetComponent<Gem>().setSelected(false);
+        //temp2.GetComponent<Gem>().setSelected(false);
 
-        UpdateAllNeighbors();
+        //UpdateAllNeighbors();
 
         temp1.GetComponent<Gem>().hasMatches();
         temp2.GetComponent<Gem>().hasMatches();
 
-        findDeletedTiles();
-        
-        
+        Debug.Log(temp1.GetComponent<Gem>().toBeDeleted);
+        Debug.Log(temp2.GetComponent<Gem>().toBeDeleted);
+        //findDeletedTiles();
+        StartCoroutine(delayFind());
+
+        //FillGaps();
     }
 
     private void FillGaps() //Method to fill in empty spaces
@@ -125,7 +140,7 @@ public class CreateBoard : MonoBehaviour
                 }
             }
         }
-        UpdateAllNeighbors();
+        //UpdateAllNeighbors();
     }
 
     private void UpdateAllNeighbors() //Updates all the neighbors of every tile
@@ -134,33 +149,57 @@ public class CreateBoard : MonoBehaviour
         {
             for (int col = 0; col < yDimention; col++)
             {
-                board[row, col].GetComponent<Gem>().FindNeighbors();
+                try
+                {
+                    board[row, col].GetComponent<Gem>().FindNeighbors();
+                } catch { 
+                    Debug.Log("No Tile");
+                }
             }
         }
     }
 
-    // Update is called once per frame
+
+    public void ChangeTileSpace(Vector2Int pos, GameObject g) //changes the reference of a tile in the board
+    {
+        board[pos.x, pos.y] = g;
+        //UpdateAllNeighbors();
+    }
     void LateUpdate()
     {
-        FillGaps();
+        
+        //FillGaps();
     }
 
     private void findDeletedTiles () //Finds tiles that have toBeDeleted = true and destroys them
     {
 
+        int numDeleted = 0;
         for (int row = 0; row < xDimention; row++)
         {
             for (int col = 0; col < yDimention; col++)
             {
-                if (board[row, col].GetComponent<Gem>().toBeDeleted == true)
+                try
                 {
-                    Destroy(board[row, col].gameObject);
+                    if (board[row, col].GetComponent<Gem>().toBeDeleted == true)
+                    {
+                        Destroy(board[row, col].gameObject);
+                        numDeleted++;
+                    }
+                } catch 
+                {
+                    Debug.Log("No Tile Found");
                 }
-                
             }
         }
-        
-
+        //Debug.Log($"Deleted {numDeleted} tiles");
+        //UpdateAllNeighbors();
     }
 
+    IEnumerator  delayFind () //A coroutine to find the deleted tiles in the hopes that all the tiles have been found... Im not sure if this is needed but it wouldn't work without it
+    {
+        yield return  new WaitForSeconds(0.01f);
+        findDeletedTiles();
+        //UpdateAllNeighbors();
+    }
 }

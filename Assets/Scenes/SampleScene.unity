@@ -163,6 +163,7 @@ MonoBehaviour:
   - {fileID: 7819318217054039577, guid: cdde1bf431cb3e84f99c80f81b6bd215, type: 3}
   backGround: {fileID: 7887114882699199939, guid: 368debeab407dc44fa7db4cb6d44eec6, type: 3}
   cam: {fileID: 519420032}
+  testSpawnTile: {fileID: 2958948611611139312, guid: 678bf470a44eda546966943018722617, type: 3}
 --- !u!4 &258680521
 Transform:
   m_ObjectHideFlags: 0
