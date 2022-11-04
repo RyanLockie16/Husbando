@@ -18,18 +18,21 @@ public class CreateBoard : MonoBehaviour
     [SerializeField]
     private Transform cam;
 
-    [SerializeField]
-    private GameObject testSpawnTile;
 
     private static GameObject[,] board;
 
     private Vector2Int[] swap;
 
+    [SerializeField]
+    private GameObject EmptyTile;
+
+    public Vector2Int BoardSize { get; private set; }
     void Start()
     {
         board = new GameObject[xDimention, yDimention];
         generateGrid();
         swap = new Vector2Int[2] { new Vector2Int(-1, -1), new Vector2Int(-1, -1) };
+        BoardSize = new Vector2Int(xDimention, yDimention);
     }
 
     private void generateGrid() //Creates the initial grid and sets the background size and positions the camera
@@ -40,7 +43,8 @@ public class CreateBoard : MonoBehaviour
             for (int col = 0; col < yDimention; col++)
             {
                 int gem = Random.Range(0, gems.Count);
-                board[row, col] = Instantiate(gems[gem], new Vector3(row, col), Quaternion.identity);
+                Vector3 tilePos = new Vector3(row * gems[gem].GetComponent<Gem>().GetTileSize().x, col * gems[gem].GetComponent<Gem>().GetTileSize().y);
+                board[row, col] = Instantiate(gems[gem], tilePos, Quaternion.identity);
                 board[row, col].transform.SetParent(transform);
                 board[row, col].name = $"{board[row, col].GetComponent<Gem>().GetGemType()} {row} {col}";
                 board[row, col].GetComponent<Gem>().pos = new Vector2Int(row, col);
@@ -115,12 +119,10 @@ public class CreateBoard : MonoBehaviour
         temp1.GetComponent<Gem>().hasMatches();
         temp2.GetComponent<Gem>().hasMatches();
 
-        Debug.Log(temp1.GetComponent<Gem>().toBeDeleted);
-        Debug.Log(temp2.GetComponent<Gem>().toBeDeleted);
-        //findDeletedTiles();
-        StartCoroutine(delayFind());
-
-        //FillGaps();
+        //Debug.Log(temp1.GetComponent<Gem>().toBeDeleted);
+        //Debug.Log(temp2.GetComponent<Gem>().toBeDeleted);
+        findDeletedTiles();
+        
     }
 
     private void FillGaps() //Method to fill in empty spaces
@@ -132,7 +134,8 @@ public class CreateBoard : MonoBehaviour
                 if (board[row, col] == null)
                 {   
                     int gem = Random.Range(0, gems.Count);
-                    board[row, col] = Instantiate(gems[gem], new Vector3(row, col), Quaternion.identity);
+                    Vector3 tilePos = new Vector3(row * gems[gem].GetComponent<Gem>().GetTileSize().x, col * gems[gem].GetComponent<Gem>().GetTileSize().y);
+                    board[row, col] = Instantiate(gems[gem], tilePos, Quaternion.identity);
                     board[row, col].transform.SetParent(transform);
                     board[row, col].name = $"{board[row, col].GetComponent<Gem>().GetGemType()} {row} {col}";
                     board[row, col].GetComponent<Gem>().pos = new Vector2Int(row, col);
@@ -140,27 +143,11 @@ public class CreateBoard : MonoBehaviour
                 }
             }
         }
-        //UpdateAllNeighbors();
-    }
-
-    private void UpdateAllNeighbors() //Updates all the neighbors of every tile
-    {
-        for (int row = 0; row < xDimention; row++)
-        {
-            for (int col = 0; col < yDimention; col++)
-            {
-                try
-                {
-                    board[row, col].GetComponent<Gem>().FindNeighbors();
-                } catch { 
-                    Debug.Log("No Tile");
-                }
-            }
-        }
     }
 
 
-    public void ChangeTileSpace(Vector2Int pos, GameObject g) //changes the reference of a tile in the board
+
+    public void ChangeTileSpace(Vector2Int pos, GameObject g) //changes the reference of a gameobject in the board
     {
         board[pos.x, pos.y] = g;
         //UpdateAllNeighbors();
@@ -174,32 +161,23 @@ public class CreateBoard : MonoBehaviour
     private void findDeletedTiles () //Finds tiles that have toBeDeleted = true and destroys them
     {
 
-        int numDeleted = 0;
         for (int row = 0; row < xDimention; row++)
         {
             for (int col = 0; col < yDimention; col++)
             {
-                try
+                if (board[row, col].GetComponent<Gem>().toBeDeleted == true)
                 {
-                    if (board[row, col].GetComponent<Gem>().toBeDeleted == true)
-                    {
-                        Destroy(board[row, col].gameObject);
-                        numDeleted++;
-                    }
-                } catch 
-                {
-                    Debug.Log("No Tile Found");
+                    Destroy(board[row, col].gameObject);
+                    board[row, col] = Instantiate(EmptyTile, new Vector3(row, col), Quaternion.identity);
+                    board[row, col].GetComponent<EmptyTile>().InIt(new Vector2Int(row, col), new Vector2Int(1, 1), gems, this);
+                    //board[row, col].GetComponent<EmptyTile>().checkLocation();
+                    Debug.Log("Spawned Empty Tile");
                 }
+                   
             }
         }
-        //Debug.Log($"Deleted {numDeleted} tiles");
-        //UpdateAllNeighbors();
+
     }
 
-    IEnumerator  delayFind () //A coroutine to find the deleted tiles in the hopes that all the tiles have been found... Im not sure if this is needed but it wouldn't work without it
-    {
-        yield return  new WaitForSeconds(0.01f);
-        findDeletedTiles();
-        //UpdateAllNeighbors();
-    }
+
 }

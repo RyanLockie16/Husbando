@@ -58,6 +58,7 @@
   <ItemGroup>
     <Compile Include="Assets\CreateBoard.cs" />
     <Compile Include="Assets\Gem.cs" />
+    <Compile Include="Assets\EmptyTile.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">
