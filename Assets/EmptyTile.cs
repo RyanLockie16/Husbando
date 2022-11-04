@@ -5,6 +5,7 @@ using UnityEngine;
 public class EmptyTile : MonoBehaviour
 {
     // Start is called before the first frame update
+    private float FillDelay = 0.5f; //Delay after match is found
     private Vector2Int pos;
     private Vector2Int size;
 
@@ -15,7 +16,8 @@ public class EmptyTile : MonoBehaviour
     {
         try
         {
-            checkLocation();
+            
+            StartCoroutine(checkLocation());
         } catch
         {
             Debug.Log("Not Initalized");
@@ -31,9 +33,9 @@ public class EmptyTile : MonoBehaviour
         transform.position = new Vector3(pos.x * size.x, pos.y * size.y);
     }
 
-    public void checkLocation()
+    IEnumerator checkLocation()
     {
-
+        yield return new WaitForSecondsRealtime(FillDelay);
         Debug.Log("Checking location");
         if (pos.y == board.BoardSize.y - 1)
         {
@@ -46,7 +48,7 @@ public class EmptyTile : MonoBehaviour
             hit = Physics2D.Raycast(transform.position, Vector2.up, 1.2f);
             if (hit && hit.transform.tag == "EmptyTile" && hit.transform.GetComponent<EmptyTile>() != this)
             {
-                hit.transform.GetComponent<EmptyTile>().checkLocation();
+                hit.transform.GetComponent<EmptyTile>().StartCoroutine(checkLocation());
                 //checkLocation();
             }
             //else if (hit && !hit.transform.CompareTag("EmptyTile"))
