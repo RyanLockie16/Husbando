@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class Gem : MonoBehaviour
@@ -29,8 +30,8 @@ public class Gem : MonoBehaviour
 
     private void FixedUpdate()
     {
-        FindNeighbors();           //Added this in so that the neighbor list stays consistent as items move
-        CheckBelow();
+        FindNeighbors();  //Added this in so that the neighbor list stays consistent as items move
+        //CheckBelow();
     }
 
     public void changePosition (Vector2Int pos) //Method to swap pos var and objects location
@@ -42,18 +43,6 @@ public class Gem : MonoBehaviour
 
 
     }
-
-    /*private void OnMouseEnter() //Checks if the mouse is over a tile to see if the outline should be turned on
-    {
-        outline.SetActive(true);
-    }
-    /*private void OnMouseExit() //Removes the outline if the tile was not clicked
-    {
-        if (!selected)
-        {
-            outline.SetActive(false);
-        }
-    }*/
 
     private void OnMouseDown() //Sets the tile to selected if the player clicks it
     {
@@ -75,7 +64,7 @@ public class Gem : MonoBehaviour
         return type;
     }
 
-    public Vector2 GetTileSize() //Returns the tile size of the gem
+    public Vector2Int GetTileSize() //Returns the tile size of the gem
     {
         return dimentions;
     }
@@ -127,126 +116,62 @@ public class Gem : MonoBehaviour
     }
 
 
-    public void hasMatches() //A public function that calls the other matching logic
+    private List<Gem> FindMatches (Vector2 dir) //Uses ray casts to see if there is a tile in the given direction and if it of the same type
     {
-        List<Vector2Int> matches = findMatches(null);
+        RaycastHit2D hit;
+        hit = Physics2D.Raycast(transform.position,dir,1.2f);
 
-        checkInLine(checkType.row, matches);
+        List<Gem> Matches = new();
+        //Collider2D col = collider2D1;
 
-        checkInLine(checkType.col, matches);
-
-    }
-
-    private List<Vector2Int> findMatches(List<Vector2Int> m) //Returns a list of of the position of tiles that match the current tiles type
-    {
-        List<Vector2Int> Matches;
-        if (m == null)
+        if (hit.collider != null)
         {
-            Matches = new List<Vector2Int>();
-            Matches.Add(pos);
-        }
-        else
-            Matches = m;
-
-
-
-        foreach (Gem gem in adjacnceyList)
-        {
-            if (gem.GetGemType() == type && canPlace(Matches, gem.pos))
-            {
-                if (canPlace(Matches, pos))
-                    Matches.Add(pos);
-
-                //Debug.Log("Found match at " + gem.pos);
-                List<Vector2Int> temp = gem.findMatches(Matches);
-
-                if (temp.Count > Matches.Count)
-                    Matches.AddRange(temp);
-                else if (canPlace(Matches, gem.pos))
-                    Matches.Add(gem.pos);
-
-                //Debug.Log(Matches.Count);
-                //return Matches;
-            }
+            //Debug.Log($"{gameObject.name} is adding a new tile");
+            Gem g = hit.transform.GetComponent<Gem>();
+            if (g.GetGemType() == type && g != this)
+                Matches.AddRange(hit.collider.GetComponent<Gem>().FindMatches(dir));
         }
 
-
+        Matches.Add(this);
         return Matches;
     }
 
-    private void checkInLine(checkType cType, List<Vector2Int> m) //Checks and removes tiles that are in a row or col
+    public void hasMatches() //A public function that calls the other matching logic
     {
-        List<Gem> toBeRemoved = new List<Gem>();
-        switch (cType)
-        {
-            case checkType.col:
-                for (int i = 0; i < m.Count; i++)
-                {
-                    if (m[i].x == pos.x && !toBeRemoved.Contains(CreateBoard.GetTile(m[i])))
-                    {
-                        toBeRemoved.Add(CreateBoard.GetTile(m[i]));
-                    }
-                }
-                break;
-            case checkType.row:
-                for (int i = 0; i < m.Count; i++)
-                {
-                    if (m[i].y == pos.y && !toBeRemoved.Contains(CreateBoard.GetTile(m[i])))
-                    {
-                        toBeRemoved.Add(CreateBoard.GetTile(m[i]));
-                    }
-                }
-                break;
-        }
-        if (toBeRemoved.Count >= 3 && !toBeDeleted)
-        {
-            for (int i = 0; i < toBeRemoved.Count; i++)
-            {
-                //Destroy(toBeRemoved[i].gameObject);
-                toBeRemoved[i].toBeDeleted = true;
-            }
-            //Destroy(this.gameObject);
-        }
-    }
 
-    private enum checkType //An enum that is used for the checkInLine() function that says what way we are checking
-    {
-        row, col
-    }
-    
+        List<Gem> row = FindMatches(Vector2.right);
+        row.AddRange(FindMatches(-Vector2.right));
+        row.Remove(this);
+        Debug.Log(row.Count);
+        
+        List<Gem> col = FindMatches(Vector2.up);
+        
 
-    private bool canPlace(List<Vector2Int> m, Vector2Int pos) //Checks if a tile can be place (I made it cause List<>.contains was being weird)
-    {
-        for (int i = 0; i < m.Count; i++)
+        col.AddRange(FindMatches(-Vector2.up));
+        col.Remove(this);
+        Debug.Log(col.Count);
+
+        
+        if (row.Count > col.Count && row.Count > 2)
         {
-            if (m[i] == pos)
+            for (int i = 0; i < row.Count; i++)
             {
-                return false;
+                row[i].toBeDeleted = true;
             }
         }
-        return true;
-    }
-
-    public void CheckBelow ()
-    {
-        if(pos.y != 0)
+        else if (col.Count > 2)
         {
-            Vector2 halfExt = new Vector2(0.25f, 0.25f);
-            Collider2D collider2D = Physics2D.OverlapBox(transform.position + (Vector3)Vector2.down, halfExt, 0f);
-
-            if(collider2D == null)
+            for(int i = 0; i < col.Count; i++)
             {
-                //Debug.Log($"Tile {gameObject.name} found a missing spot at {new Vector2Int(pos.x, pos.y - 1)}");
-                changePosition(new Vector2Int(pos.x, pos.y - 1));
-
-                CheckBelow();
+                col[i].toBeDeleted = true;
             }
         }
-        //gameObject.GetComponentInParent<CreateBoard>().UpdateBoard();
+
     }
+
 }
 
 public enum GemType //An Enum that corrisponds to the what type the gem is
 {
-    ICS, Math, Humanities, BioSci, Stats, Engineering, TestTile
+    ICS, Math, Humanities, BioSci, Stats, Engineering
 }
