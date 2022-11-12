@@ -16,7 +16,7 @@ public class CreateBoard : MonoBehaviour
     private GameObject backGround;
 
     [SerializeField]
-    private Transform cam;
+    private Camera cam;
 
     [SerializeField]
     private GameObject testSpawnTile;
@@ -50,6 +50,8 @@ public class CreateBoard : MonoBehaviour
         cam.transform.position = new Vector3((float)xDimention / 2 - tileDimentions.x / 2f, (float)yDimention / 2 - tileDimentions.y / 2f, -10f); //Set cam position to center of the board
         var bg = Instantiate(backGround, new Vector3((float)xDimention / 2 - tileDimentions.x / 2f, (float)yDimention / 2 - tileDimentions.y / 2f), Quaternion.identity); //Creates background and sets it to the size of the grid
         bg.transform.localScale = new Vector3(xDimention + 2f, yDimention + 2f); //Sets the boarder of the grid so there is some white space
+        float width = (2f * cam.orthographicSize) * cam.aspect;
+        cam.transform.position = new Vector3(cam.transform.position.x + (width - bg.transform.localScale.x)/2f, cam.transform.position.y, cam.transform.position.z);
     }
 
 
