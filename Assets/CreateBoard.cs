@@ -51,7 +51,7 @@ public class CreateBoard : MonoBehaviour
             }
         }
         Vector2 tileDimentions = board[0, 0].GetComponent<Gem>().GetTileSize(); //Gets Tile size for calculations later
-        cam.transform.position = new Vector3((float)xDimention / 2 - tileDimentions.x / 2f, (float)yDimention / 2 - tileDimentions.y / 2f, -10f); //Set cam position to center of the board
+        cam.transform.position = new Vector3((float)xDimention / 2 + tileDimentions.x / 0.4f, (float)yDimention / 2 - tileDimentions.y / 2f, -10f); //Set cam position to center of the board (adjusted so board leans to the left of the screen)
         var bg = Instantiate(backGround, new Vector3((float)xDimention / 2 - tileDimentions.x / 2f, (float)yDimention / 2 - tileDimentions.y / 2f), Quaternion.identity); //Creates background and sets it to the size of the grid
         bg.transform.localScale = new Vector3(xDimention + 2f, yDimention + 2f); //Sets the boarder of the grid so there is some white space
     }
