@@ -141,7 +141,7 @@ public class Gem : MonoBehaviour
             //Debug.Log($"{gameObject.name} is adding a new tile");
             if (hit.transform.GetComponent<Gem>() != null) {
                 Gem g = hit.transform.GetComponent<Gem>();
-                if (g.GetGemType() == type && g != this)
+                if (g.GetGemType() == type && g != this && !g.toBeDeleted)
                     Matches.AddRange(g.FindMatches(dir));
             }
         }
