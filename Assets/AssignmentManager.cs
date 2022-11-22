@@ -69,6 +69,7 @@ public class AssignmentManager : MonoBehaviour
         RefreshQuantityText();
         Gem currentGem = gemTypes[Random.Range(0, gemTypes.Count)].GetComponent<Gem>(); //Sets a current type of gem to be the target
         MatchTaskImage.sprite = currentGem.GetComponent<SpriteRenderer>().sprite; //Sets UI display image to that of the gem (This currently bugs out for some of the similar images, but will work once all the gems have unique sprites)
+        MatchTaskImage.color = currentGem.GetComponent<SpriteRenderer>().color; 
         currentType = currentGem.GetGemType(); //need to modify this in order to find a way to choose a random one of the gem types (unsure how they are currently stored)
     }
 

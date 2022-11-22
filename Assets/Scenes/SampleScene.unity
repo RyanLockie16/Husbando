@@ -156,7 +156,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   MatchScoreValue: 100
-  gemTypes: []
+  gemTypes:
+  - {fileID: 2699710281365279481, guid: a4c87f38a008f1841a24d7c40ff62b75, type: 3}
+  - {fileID: 7819318217054039577, guid: cdde1bf431cb3e84f99c80f81b6bd215, type: 3}
+  - {fileID: 5843465229383532556, guid: bcd9dfece19157e48a52735388296cb9, type: 3}
+  - {fileID: 3402853997789769954, guid: 996bb64da5d33db45be794a26d206489, type: 3}
+  - {fileID: 6967223177767353141, guid: 404a286484cd3684ba16eea86fc2a83c, type: 3}
+  - {fileID: 7840356858099580450, guid: fda4f264bd652b44895c39640b0d1359, type: 3}
   MatchTaskImage: {fileID: 849215877}
   quantityText: {fileID: 1910872551}
   scoreText: {fileID: 2071476553}
