@@ -11,13 +11,14 @@ public class CreateBoard : MonoBehaviour
     [SerializeField]
     private int yDimention;
     [SerializeField]
-    private List<GameObject> gems;
+    private List<GameObject> BasicGems;
+    [SerializeField]
+    private List<GameObject> SpecialGems;
     [SerializeField]
     private GameObject backGround;
 
     [SerializeField]
     private Camera cam;
-
 
     private static GameObject[,] board;
 
@@ -27,12 +28,15 @@ public class CreateBoard : MonoBehaviour
     private GameObject EmptyTile;
 
     public Vector2Int BoardSize { get; private set; }
+
+     //% chance to spawn a basic tile
     void Start()
     {
         board = new GameObject[xDimention, yDimention];
         generateGrid();
         swap = new Vector2Int[2] { new Vector2Int(-1, -1), new Vector2Int(-1, -1) };
         BoardSize = new Vector2Int(xDimention, yDimention);
+        Debug.Log(TileConfig.GetTileSize());
     }
 
     private void generateGrid() //Creates the initial grid and sets the background size and positions the camera
@@ -42,22 +46,47 @@ public class CreateBoard : MonoBehaviour
         {
             for (int col = 0; col < yDimention; col++)
             {
-                int gem = Random.Range(0, gems.Count);
-                Vector3 tilePos = new Vector3(row * gems[gem].GetComponent<Gem>().GetTileSize().x, col * gems[gem].GetComponent<Gem>().GetTileSize().y);
-                board[row, col] = Instantiate(gems[gem], tilePos, Quaternion.identity);
-                board[row, col].transform.SetParent(transform);
-                board[row, col].name = $"{board[row, col].GetComponent<Gem>().GetGemType()} {row} {col}";
-                board[row, col].GetComponent<Gem>().pos = new Vector2Int(row, col);
+                if (Random.Range(0f, 100f) - TileConfig.GetSpawnChance() <= 0) { //An if statement to choose if it should spawn a basic or special tile
+                    SpawnTile(row, col, false);
+                }
+                else
+                {
+                    SpawnTile(row, col, true);
+                }
             }
         }
-        Vector2 tileDimentions = board[0, 0].GetComponent<Gem>().GetTileSize(); //Gets Tile size for calculations later
-        cam.transform.position = new Vector3((float)xDimention / 2 - tileDimentions.x / 2f, (float)yDimention / 2 - tileDimentions.y / 2f, -10f); //Set cam position to center of the board
-        var bg = Instantiate(backGround, new Vector3((float)xDimention / 2 - tileDimentions.x / 2f, (float)yDimention / 2 - tileDimentions.y / 2f), Quaternion.identity); //Creates background and sets it to the size of the grid
-        bg.transform.localScale = new Vector3(xDimention + 2f, yDimention + 2f); //Sets the boarder of the grid so there is some white space
+        cam.transform.position = new Vector3((float)xDimention / 2 - TileConfig.GetTileSize().x / 2f, (float)yDimention / 2 - TileConfig.GetTileSize().y / 2f, -10f); //Set cam position to center of the board
+        var bg = Instantiate(backGround, new Vector3((float)xDimention / 2 - TileConfig.GetTileSize().x / 2f, (float)yDimention / 2 - TileConfig.GetTileSize().y / 2f), Quaternion.identity); //Creates background and sets it to the size of the grid
+        bg.transform.localScale = new Vector3(xDimention + TileConfig.GetTileSize().x*2f, yDimention + TileConfig.GetTileSize().y*2f); //Sets the boarder of the grid so there is some white space
         float width = (2f * cam.orthographicSize) * cam.aspect;
         cam.transform.position = new Vector3(cam.transform.position.x + (width - bg.transform.localScale.x)/2f, cam.transform.position.y, cam.transform.position.z);
     }
 
+    public void SpawnTile (int row, int col, bool IsSpecial) //Move all logic that actually spawns the tiles to a method for convience
+    {
+        if (IsSpecial)
+        {
+            int gem = Random.Range(0, SpecialGems.Count);
+            Vector3 tilePos = new Vector3(row * TileConfig.GetTileSize().x, col * TileConfig.GetTileSize().y);
+            board[row, col] = Instantiate(SpecialGems[gem], tilePos, Quaternion.identity);
+            board[row, col].transform.SetParent(transform);
+            board[row, col].name = $"{board[row, col].GetComponent<Gem>().GetGemType()} Special {row} {col}";
+            board[row, col].GetComponent<Gem>().pos = new Vector2Int(row, col);
+        }
+        else {
+            int gem = Random.Range(0, BasicGems.Count);
+            Vector3 tilePos = new Vector3(row * TileConfig.GetTileSize().x, col * TileConfig.GetTileSize().y);
+            board[row, col] = Instantiate(BasicGems[gem], tilePos, Quaternion.identity);
+            board[row, col].transform.SetParent(transform);
+            board[row, col].name = $"{board[row, col].GetComponent<Gem>().GetGemType()} Basic {row} {col}";
+            board[row, col].GetComponent<Gem>().pos = new Vector2Int(row, col);
+        }
+        if (!board[row, col].GetComponent<Gem>().CanBePlaced())
+        {
+            Destroy(board[row, col]);
+            SpawnTile(row, col, IsSpecial);
+        }
+    }
 
     public static Gem GetTile(Vector2Int pos) //A function that returns the gem at a given position
     {
@@ -123,30 +152,9 @@ public class CreateBoard : MonoBehaviour
 
         //Debug.Log(temp1.GetComponent<Gem>().toBeDeleted);
         //Debug.Log(temp2.GetComponent<Gem>().toBeDeleted);
-        findDeletedTiles();
+        FindDeletedTiles();
         
     }
-
-    private void FillGaps() //Method to fill in empty spaces
-    {
-        for (int row = 0; row < xDimention; row++)
-        {
-            for (int col = 0; col < yDimention; col++)
-            {
-                if (board[row, col] == null)
-                {   
-                    int gem = Random.Range(0, gems.Count);
-                    Vector3 tilePos = new Vector3(row * gems[gem].GetComponent<Gem>().GetTileSize().x, col * gems[gem].GetComponent<Gem>().GetTileSize().y);
-                    board[row, col] = Instantiate(gems[gem], tilePos, Quaternion.identity);
-                    board[row, col].transform.SetParent(transform);
-                    board[row, col].name = $"{board[row, col].GetComponent<Gem>().GetGemType()} {row} {col}";
-                    board[row, col].GetComponent<Gem>().pos = new Vector2Int(row, col);
-                    
-                }
-            }
-        }
-    }
-
 
 
     public void ChangeTileSpace(Vector2Int pos, GameObject g) //changes the reference of a gameobject in the board
@@ -154,24 +162,28 @@ public class CreateBoard : MonoBehaviour
         board[pos.x, pos.y] = g;
         //UpdateAllNeighbors();
     }
-    void LateUpdate()
+    void Update()
     {
         
-        //FillGaps();
+        if (swap[0] != new Vector2Int(-1, -1) && Input.GetKeyDown(KeyCode.Escape))
+        {
+            board[swap[0].x, swap[0].y].GetComponent<Gem>().setSelected(false);
+            swap[0] = new Vector2Int(-1, -1);
+        }
     }
 
-    private void findDeletedTiles () //Finds tiles that have toBeDeleted = true and destroys them
+    private void FindDeletedTiles() //Finds tiles that have toBeDeleted = true and destroys them
     {
 
         for (int row = 0; row < xDimention; row++)
         {
             for (int col = 0; col < yDimention; col++)
             {
-                if (board[row, col].GetComponent<Gem>().toBeDeleted == true)
+                if (board[row, col].GetComponent<Gem>() != null && board[row, col].GetComponent<Gem>().toBeDeleted == true)
                 {
                     Destroy(board[row, col].gameObject);
                     board[row, col] = Instantiate(EmptyTile, new Vector3(row, col), Quaternion.identity);
-                    board[row, col].GetComponent<EmptyTile>().InIt(new Vector2Int(row, col), new Vector2Int(1, 1), gems, this);
+                    board[row, col].GetComponent<EmptyTile>().InIt(new Vector2Int(row, col), this);
                     //board[row, col].GetComponent<EmptyTile>().checkLocation();
                     Debug.Log("Spawned Empty Tile");
                 }
@@ -181,5 +193,20 @@ public class CreateBoard : MonoBehaviour
 
     }
 
+    public void FindMatchesAllTiles()
+    {
+        for (int row = 0; row < xDimention; row++)
+        {
+            for (int col = 0; col < yDimention; col++)
+            {
+                if (board[row, col].GetComponent<Gem>() != null)
+                {
+                    board[row, col].GetComponent<Gem>().hasMatches();
+                }
 
+            }
+        }
+
+        FindDeletedTiles();
+    }
 }
