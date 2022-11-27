@@ -194,6 +194,7 @@ public class Gem : MonoBehaviour
         {
             for (int i = 0; i < row.Count; i++)
             {
+                FindObjectOfType<AssignmentManager>().CheckMatch(row); //Sends row to check for assignments (Both of these statements could be moved outside of the method if you wanted assignments to be checked for non-matches)
                 row[i].toBeDeleted = true;
             }
         }
@@ -201,6 +202,7 @@ public class Gem : MonoBehaviour
         {
             for(int i = 0; i < col.Count; i++)
             {
+                FindObjectOfType<AssignmentManager>().CheckMatch(col); //Sends col to check for assignments
                 col[i].toBeDeleted = true;
             }
         }
