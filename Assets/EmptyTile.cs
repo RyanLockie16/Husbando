@@ -7,9 +7,7 @@ public class EmptyTile : MonoBehaviour
     // Start is called before the first frame update
     private float FillDelay = 0.5f; //Delay after match is found
     private Vector2Int pos;
-    private Vector2Int size;
 
-    private List<GameObject> gemList; 
     private CreateBoard board;
 
     private void FixedUpdate()
@@ -24,13 +22,13 @@ public class EmptyTile : MonoBehaviour
         }
     }
 
-    public void InIt(Vector2Int pos, Vector2Int tileSize, List<GameObject> gemList, CreateBoard board)
+    public void InIt(Vector2Int pos, CreateBoard board)
     {
         this.pos = pos;
-        this.size = tileSize;
-        this.gemList = gemList;
         this.board = board;
-        transform.position = new Vector3(pos.x * size.x, pos.y * size.y);
+        gameObject.transform.localScale = new Vector3(TileConfig.GetTileSize().x, TileConfig.GetTileSize().y);
+        transform.position = new Vector3(pos.x * TileConfig.GetTileSize().x, pos.y * TileConfig.GetTileSize().y);
+        
     }
 
     IEnumerator checkLocation()
@@ -39,6 +37,7 @@ public class EmptyTile : MonoBehaviour
         Debug.Log("Checking location");
         if (pos.y == board.BoardSize.y - 1)
         {
+            
             SpawnNewTile();
         }
         else
@@ -54,9 +53,10 @@ public class EmptyTile : MonoBehaviour
             //else if (hit && !hit.transform.CompareTag("EmptyTile"))
             else if (hit && hit.transform.GetComponent<Gem>() != null)
             {
+                
                 Gem g = hit.transform.GetComponent<Gem>();
                
-                transform.position = new Vector3(g.pos.x * size.x, g.pos.y * size.y);
+                transform.position = new Vector3(g.pos.x * TileConfig.GetTileSize().x, g.pos.y * TileConfig.GetTileSize().y);
                 Vector2Int pos2 = g.pos;
                 
                 
@@ -75,15 +75,28 @@ public class EmptyTile : MonoBehaviour
         }
     }
 
+    private void OnDestroy()
+    {
+        board.FindMatchesAllTiles();
+    }
 
     private void SpawnNewTile()
     {
-        int gem = Random.Range(0, gemList.Count);
+        /*int gem = Random.Range(0, gemList.Count);
         GameObject g = Instantiate(gemList[gem], new Vector3 (pos.x, pos.y), Quaternion.identity);
         g.transform.SetParent(board.transform);
         g.name = $"{g.GetComponent<Gem>().GetGemType()} {pos.x} {pos.y}";
         g.GetComponent<Gem>().pos = new Vector2Int(pos.x, pos.y);
-        board.ChangeTileSpace(pos, g);
+        board.ChangeTileSpace(pos, g);*/
+        if (Random.Range(0f, 100f) - TileConfig.GetSpawnChance() <= 0)
+        { //An if statement to choose if it should spawn a basic or special tile
+            board.SpawnTile(pos.x, pos.y, false);
+        }
+        else
+        {
+            board.SpawnTile(pos.x, pos.y, true);
+        }
+
         Destroy(gameObject);
     }
 }
